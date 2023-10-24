@@ -298,7 +298,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 	// *****************************************************************
 			//uniform vec4 eyeLocation;
 
-	flyCameraInput(); // UPDATE CAMERA STATS
+	flyCameraInput(width, height); // UPDATE CAMERA STATS
 
 	GLint eyeLocation_UL = glGetUniformLocation(m_shaderProgramID, "eyeLocation");
 	glUniform4f(eyeLocation_UL,
@@ -612,64 +612,72 @@ void cGraphicsMain::updateSelectedMesh(int meshIdx, std::string friendlyName, gl
 	m_vec_pMeshesToDraw[meshIdx]->scale = newScale;
 }
 
-void cGraphicsMain::flyCameraInput()
+void cGraphicsMain::flyCameraInput(int width, int height)
 {
 	static bool isRightClicking = false;
 	static double mouseXPos = 0;
 	static double mouseYPos = 0;
-	//int state = glfwGetKey(m_window, GLFW_KEY_W);
+
 	int state = glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_RIGHT);
 	if (state == GLFW_PRESS) // Start tracking delta mouse position
 	{
 		if (!isRightClicking) // start tracking
 		{
-			glfwGetCursorPos(m_window, &mouseXPos, &mouseYPos);
+			mouseXPos = width / 2;
+			mouseYPos = height / 2;
+			//glfwSetCursorPos(m_window, width / 2, height / 2);
+			glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			//glfwGetCursorPos(m_window, &mouseXPos, &mouseYPos);
 			isRightClicking = true;
 		}
-		double deltaMouseX, deltaMouseY;
-		glfwGetCursorPos(m_window, &deltaMouseX, &deltaMouseY); // Get current mouse position
-		deltaMouseX -= mouseXPos; // Set the delta mouse positions
-		deltaMouseY -= mouseYPos; // for this tick
+		else
+		{
+			double deltaMouseX, deltaMouseY;
+			glfwGetCursorPos(m_window, &deltaMouseX, &deltaMouseY); // Get current mouse position
+			deltaMouseX -= mouseXPos; // Set the delta mouse positions
+			deltaMouseY -= mouseYPos; // for this tick
 
-		// Camera rotation here :)
-		// Target: directly affect the y and normalize every time
-		// Rotation: running y value; target x is sin() + 3.14 and z is sin()
-		m_cameraRotation.x -= deltaMouseX/1000;
-		//m_cameraForwardRotation.z += mouseXPos;
-		//m_cameraForwardRotation.y += deltaMouseX/1000;
-		m_cameraRotation.y -= deltaMouseY / 1000;
-		m_cameraTarget.y = m_cameraRotation.y;
-		m_cameraTarget.x = sin(m_cameraRotation.x);
-		m_cameraTarget.z = sin(m_cameraRotation.x + 1.57);
-		m_cameraTarget = glm::normalize(m_cameraTarget);
-		m_cameraTarget.y *= 2;
+			// Camera rotation here :)
+			m_cameraRotation.x -= deltaMouseX / 1000;
 
-		glfwGetCursorPos(m_window, &mouseXPos, &mouseYPos); // Update this for next loop
+			m_cameraRotation.y -= deltaMouseY / 1000;
+			m_cameraTarget.y = m_cameraRotation.y;     // This is pitch
+			m_cameraTarget.x = sin(m_cameraRotation.x);         // This is just y-rotation
+			m_cameraTarget.z = sin(m_cameraRotation.x + 1.57);  //
+			m_cameraTarget = glm::normalize(m_cameraTarget);
+			m_cameraTarget.y *= 2;
+			glfwSetCursorPos(m_window, width / 2, height / 2);
+			glfwGetCursorPos(m_window, &mouseXPos, &mouseYPos); // Update this for next loop
+		}
+
 	}
-	else
+	else if (isRightClicking)
 	{
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		isRightClicking = false;
 	}
 
-
-	state = glfwGetKey(m_window, GLFW_KEY_W);
-	if (state == GLFW_PRESS) // Move forward
+	if (isRightClicking) // Have movement tied to right-clicking too
 	{
-		m_cameraEye += m_cameraTarget;
-	}
-	state = glfwGetKey(m_window, GLFW_KEY_S);
-	if (state == GLFW_PRESS) // Move backwards
-	{
-		m_cameraEye -= m_cameraTarget;
-	}
-	state = glfwGetKey(m_window, GLFW_KEY_A);
-	if (state == GLFW_PRESS) // Move left
-	{
-		m_cameraEye += glm::cross(m_upVector, m_cameraTarget);
-	}
-	state = glfwGetKey(m_window, GLFW_KEY_D);
-	if (state == GLFW_PRESS) // Move right
-	{
-		m_cameraEye -= glm::cross(m_upVector, m_cameraTarget);
+		state = glfwGetKey(m_window, GLFW_KEY_W);
+		if (state == GLFW_PRESS) // Move forward
+		{
+			m_cameraEye += glm::normalize(m_cameraTarget) * m_FlyCamSpeed;
+		}
+		state = glfwGetKey(m_window, GLFW_KEY_S);
+		if (state == GLFW_PRESS) // Move backwards
+		{
+			m_cameraEye -= glm::normalize(m_cameraTarget) * m_FlyCamSpeed;
+		}
+		state = glfwGetKey(m_window, GLFW_KEY_A);
+		if (state == GLFW_PRESS) // Move left
+		{
+			m_cameraEye += glm::normalize(glm::cross(m_upVector, m_cameraTarget)) * m_FlyCamSpeed;
+		}
+		state = glfwGetKey(m_window, GLFW_KEY_D);
+		if (state == GLFW_PRESS) // Move right
+		{
+			m_cameraEye -= glm::normalize(glm::cross(m_upVector, m_cameraTarget)) * m_FlyCamSpeed;
+		}
 	}
 }

@@ -39,7 +39,8 @@ private:
 	void addNewMesh(std::string fileName, char* friendlyName); // Adding new objects from the gui
 	void updateSelectedMesh(int meshIdx, std::string friendlyName, glm::vec3 newPos, glm::vec3 newOri, float newScale); // Updates and existing object by reference to its friendly name (also from the gui)
 
-	void flyCameraInput();
+	void flyCameraInput(int width, int height);
+	float m_FlyCamSpeed = 3.0f;
 
 	std::vector<std::string> m_AvailableModels; // String of model file names to choose from
 
