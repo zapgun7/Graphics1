@@ -41,7 +41,7 @@ cGraphicsMain* cGraphicsMain::getGraphicsMain(void) // Making graphics main a si
 cGraphicsMain::cGraphicsMain()
 {
 	m_cameraEye = glm::vec3(0.0, 0.0f, 100.0f);
-	m_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+	m_cameraTarget = glm::vec3(0.0f, 0.0f, 1.0f);
 	m_cameraRotation = glm::vec3(0.0, 0.0f, 0.0f);
 	m_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 	m_ShowLightEditor = false;
@@ -105,6 +105,7 @@ bool cGraphicsMain::Initialize()
 	m_pMeshManager->setBasePath("assets/models");
 
 	m_pTheLights = new cLightManager();
+	m_pTheLights->SetUniformLocations(m_shaderProgramID);
 
 
 	// MODEL LOADING /////////////////
@@ -192,6 +193,13 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 			else
 				m_ShowMeshEditor = true;
 		}
+		if (ImGui::Button("Light Editor"))
+		{
+			if (m_ShowLightEditor)
+				m_ShowLightEditor = false;
+			else
+				m_ShowLightEditor = true;
+		}
 
 
 
@@ -204,7 +212,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		ImGui::Begin("Mesh Editor");
 
 		static int mesh_obj_idx = 0;
-		if (ImGui::BeginListBox("Available Objects"))
+		if (ImGui::BeginListBox("Available Objects")) // List of active meshes
 		{
 			for (int n = 0; n < m_vec_pMeshesToDraw.size(); n++)
 			{
@@ -218,9 +226,18 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 			}
 			ImGui::EndListBox();
 		}
-		bool isExistingMesh = true;
+		bool isExistingMesh = true; // Assert we have at least one mesh
 		if (m_vec_pMeshesToDraw.size() > 0)
 			isExistingMesh = false;
+
+		static bool doNotLight = false;
+		if (isExistingMesh)
+			doNotLight = m_vec_pMeshesToDraw[mesh_obj_idx]->bDoNotLight;
+
+
+		ImGui::Checkbox("doNotLight", &doNotLight);
+
+
 		float xPos = 0;
 		float yPos = 0;
 		float zPos = 0;
@@ -259,11 +276,128 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		{
 			glm::vec3 newPos = glm::vec3(xPos, yPos, zPos);
 			glm::vec3 newOri = glm::vec3(xOri, yOri, zOri);
-			updateSelectedMesh(mesh_obj_idx, "A NEW FRIENDLY NAME", newPos, newOri, scale);
+			updateSelectedMesh(mesh_obj_idx, "A NEW FRIENDLY NAME", newPos, newOri, scale, doNotLight);
 		}
 		ImGui::End();
 	}
 
+	if (m_ShowLightEditor)
+	{
+		ImGui::Begin("Light Editor");
+
+		static int light_obj_idx = 0;
+		if (ImGui::BeginListBox("Available Objects"))
+		{
+			for (int n = 0; n < m_pTheLights->NUMBER_OF_LIGHTS_IM_USING; n++)
+			{
+				const bool is_selected = (light_obj_idx == n);
+				if (ImGui::Selectable(m_pTheLights->theLights[n].friendlyName.c_str(), is_selected))
+					light_obj_idx = n;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndListBox();
+		}
+// 		bool isExistingLight = true;
+// 		if (m_vec_pMeshesToDraw.size() > 0)
+// 			isExistingLight = false;
+
+
+		glm::vec4 lightPos = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightDir = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightDiff = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightSpec = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightAtten = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightParam1 = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec4 lightParam2 = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+// 		if (!isExistingLight)
+// 		{
+			lightPos = m_pTheLights->theLights[light_obj_idx].position;
+			lightDir = m_pTheLights->theLights[light_obj_idx].direction;
+			lightDiff = m_pTheLights->theLights[light_obj_idx].diffuse;
+			lightSpec = m_pTheLights->theLights[light_obj_idx].specular; // rgb = highlight colour, w = power
+			lightAtten = m_pTheLights->theLights[light_obj_idx].atten; // x = constant, y = linear, z = quadratic, w = DistanceCutOff
+			lightParam1 = m_pTheLights->theLights[light_obj_idx].param1; // x: light type    y: inner angle    z: outer angle
+			lightParam2 = m_pTheLights->theLights[light_obj_idx].param2; // x: light on(1) or off(0)
+		/*}*/
+		static char lightname[32] = ""; 
+		//strcpy_s(lightname, m_pTheLights->theLights[light_obj_idx].friendlyName.c_str()); // TODO too long a name will prob break this
+
+		ImGui::InputText("Light Name", lightname, 32);
+		if (ImGui::Button("Set New Name")) // Button to set new light friendlyname
+		{
+			if (strlen(lightname) > 0)
+				m_pTheLights->theLights[light_obj_idx].friendlyName = lightname;
+		}
+
+		ImGui::SeparatorText("Position");
+		ImGui::DragFloat("X-Pos", &lightPos.x, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Y-Pos", &lightPos.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Z-Pos", &lightPos.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::SeparatorText("Direction");
+		ImGui::DragFloat("X-Dir", &lightDir.x, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Y-Dir", &lightDir.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Z-Dir", &lightDir.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::SeparatorText("Spotlight Cone");
+		ImGui::DragFloat("Inner Angle", &lightParam1.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Outer Angle", &lightParam1.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::SeparatorText("Diffuse");
+		ImGui::DragFloat("Red Diffuse", &lightDiff.x, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Green Diffuse", &lightDiff.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Blue Diffuse", &lightDiff.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::SeparatorText("Specular");
+		ImGui::DragFloat("Red Specular", &lightSpec.x, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Green Specular", &lightSpec.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Blue Specular", &lightSpec.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Spec Power", &lightSpec.w, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::SeparatorText("Attenuation");
+		ImGui::DragFloat("Constant", &lightAtten.x, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Linear", &lightAtten.y, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Quadratic", &lightAtten.z, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+		ImGui::DragFloat("Distance Cutoff", &lightAtten.w, 0.005f, -FLT_MAX, +FLT_MAX, "%.3f");
+
+		ImGui::SeparatorText("Other Light Options");
+		const char* lightTypes[] = { "Point Light", "Spot Light", "Directional Light"};
+		static int ltype_current_idx = 0;
+		const char* combo_preview_value = lightTypes[ltype_current_idx];
+		if (ImGui::BeginCombo("Light Types", combo_preview_value))
+		{
+			for (int n = 0; n < IM_ARRAYSIZE(lightTypes); n++)
+			{
+				const bool is_selected = (ltype_current_idx == n);
+				if (ImGui::Selectable(lightTypes[n], is_selected))
+					ltype_current_idx = n;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+		lightParam1.x = ltype_current_idx; // Set light type
+		ImGui::SameLine();
+		static bool lightOn = true;
+		if (lightParam2.x == 0)
+			lightOn = false;
+		else
+			lightOn = true;
+
+		ImGui::Checkbox("Toggle Light", &lightOn);
+		if (lightOn)
+			lightParam2.x = 1;
+		else
+			lightParam2.x = 0;
+
+
+// 		if (isExistingLight)
+// 		{
+			updateSelectedLight(light_obj_idx, lightPos, lightDiff, lightSpec, lightAtten, lightDir, lightParam1, lightParam2);
+		/*}*/
+
+		ImGui::End();
+	}
 
 
 
@@ -601,7 +735,7 @@ void cGraphicsMain::addNewMesh(std::string fileName, char* friendlyName)
 }
 
 // Updates values of selected object from the gui
-void cGraphicsMain::updateSelectedMesh(int meshIdx, std::string friendlyName, glm::vec3 newPos, glm::vec3 newOri, float newScale) // Will need to pass in a lot more info
+void cGraphicsMain::updateSelectedMesh(int meshIdx, std::string friendlyName, glm::vec3 newPos, glm::vec3 newOri, float newScale, bool doNotLight) // Will need to pass in a lot more info
 {
 	m_vec_pMeshesToDraw[meshIdx]->drawPosition = newPos;
 	//m_vec_pMeshesToDraw[meshIdx]->setRotationFromEuler(newOri);
@@ -610,6 +744,27 @@ void cGraphicsMain::updateSelectedMesh(int meshIdx, std::string friendlyName, gl
 	m_vec_pMeshesToDraw[meshIdx]->adjustRotationAngleFromEuler(deltaOri);
 	//m_vec_pMeshesToDraw[meshIdx]->adjustRotationAngleFromEuler(glm::vec3(0.0f, 0.0f, 0.01f));
 	m_vec_pMeshesToDraw[meshIdx]->scale = newScale;
+	m_vec_pMeshesToDraw[meshIdx]->bDoNotLight = doNotLight;
+}
+
+void cGraphicsMain::addNewLight(char* friendlyName)
+{
+	int newLightIdx = m_pTheLights->nextLightIdx++;
+	m_pTheLights->theLights[newLightIdx].param2.x = 1.0f; // Turn light on
+	m_pTheLights->theLights[newLightIdx].friendlyName = friendlyName; // Name the light
+}
+
+void cGraphicsMain::updateSelectedLight(int lightIdx, glm::vec4 newPos, glm::vec4 newDiff, glm::vec4 newSpec, glm::vec4 newAtten, glm::vec4 newDir, glm::vec4 newParam1, glm::vec4 newParam2)
+{
+	m_pTheLights->theLights[lightIdx].position = newPos;
+	m_pTheLights->theLights[lightIdx].diffuse = newDiff;
+	m_pTheLights->theLights[lightIdx].specular = newSpec;
+	m_pTheLights->theLights[lightIdx].atten = newAtten;
+	m_pTheLights->theLights[lightIdx].direction = newDir;
+	m_pTheLights->theLights[lightIdx].param1 = newParam1;
+	m_pTheLights->theLights[lightIdx].param2 = newParam2;
+
+	return;
 }
 
 void cGraphicsMain::flyCameraInput(int width, int height)

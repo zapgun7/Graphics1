@@ -37,7 +37,9 @@ private:
 	bool LoadModels(void);
 
 	void addNewMesh(std::string fileName, char* friendlyName); // Adding new objects from the gui
-	void updateSelectedMesh(int meshIdx, std::string friendlyName, glm::vec3 newPos, glm::vec3 newOri, float newScale); // Updates and existing object by reference to its friendly name (also from the gui)
+	void updateSelectedMesh(int meshIdx, std::string friendlyName, glm::vec3 newPos, glm::vec3 newOri, float newScale, bool doNotLight); // Updates and existing object by reference to its friendly name (also from the gui)
+	void addNewLight(char* friendlyName);
+	void updateSelectedLight(int lightIdx, glm::vec4 newPos, glm::vec4 newDiff, glm::vec4 newSpec, glm::vec4 newAtten, glm::vec4 newDir, glm::vec4 newParam1, glm::vec4 newParam2);
 
 	void flyCameraInput(int width, int height);
 	float m_FlyCamSpeed = 3.0f;

@@ -133,7 +133,8 @@ vec4 calculateLightContrib( vec3 vertexMaterialColour, vec3 vertexNormal,
 			// (This is part of the reason directional lights are fast to calculate)
 
 
-			return finalObjectColour;		
+			//return finalObjectColour;		
+			continue;
 		}
 		
 		// Assume it's a point light 

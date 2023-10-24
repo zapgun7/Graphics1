@@ -22,6 +22,9 @@ cLight::cLight()
 	this->param2 = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 
+	this->friendlyName = "---";
+
+
 	this->position_UL = -1;
 	this->diffuse_UL = -1;
 	this->specular_UL = -1;

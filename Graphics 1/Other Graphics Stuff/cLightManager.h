@@ -3,6 +3,7 @@
 #include "OpenGLCommon.h"
 #include <glm/glm.hpp>
 #include <glm/vec4.hpp>
+#include <string>
 
 // This structure matches what's in the shader
 class cLight
@@ -10,6 +11,7 @@ class cLight
 public:
     cLight();
 
+    std::string friendlyName;
     glm::vec4 position;
     glm::vec4 diffuse;	// Colour of the light (used for diffuse)
     glm::vec4 specular;	// rgb = highlight colour, w = power
@@ -47,6 +49,6 @@ public:
 
     static const unsigned int NUMBER_OF_LIGHTS_IM_USING = 10;
     cLight theLights[NUMBER_OF_LIGHTS_IM_USING];
-
+    int nextLightIdx = 0; // Index to track which index we use next for a new light
 };
 
