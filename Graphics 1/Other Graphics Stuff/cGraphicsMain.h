@@ -15,6 +15,7 @@
 #include "../cInputHandler.h"
 #include "../Basic Shader Manager/cShaderManager.h"
 #include "cLightManager.h"
+#include "../cSceneManagement.h"
 
 class cGraphicsMain
 {
@@ -63,11 +64,14 @@ private:
 	cLightManager* m_pTheLights;
 
 	// ImGui
-	bool m_ShowMeshEditor;   // Windows to edit existing meshes and lights respectively
-	bool m_ShowLightEditor;  //
+	bool m_ShowMeshEditor;   // 
+	bool m_ShowLightEditor;  // Windows to edit existing meshes and lights respectively
+	bool m_ShowSceneManager; //
 
 	ImGuiIO m_io; // ImGui io
 	cInputHandler* m_InputHandler;
+
+	cSceneManagement* m_pSceneManager;
 
 	static cGraphicsMain* m_pTheOnlyGraphicsMain;
 };

@@ -40,6 +40,9 @@
     <Filter Include="Graphics Engine\ImGui\backends">
       <UniqueIdentifier>{813afed8-cc4c-4377-ad74-28645da30482}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics Engine\SceneSave">
+      <UniqueIdentifier>{13d264ec-9916-40cf-8ba2-1d9b459b1941}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basic Shader Manager\cShaderManager.cpp">
@@ -93,6 +96,9 @@
     <ClCompile Include="..\include\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>Graphics Engine\ImGui\backends</Filter>
     </ClCompile>
+    <ClCompile Include="cSceneManagement.cpp">
+      <Filter>Graphics Engine\SceneSave</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basic Shader Manager\cShaderManager.h">
@@ -145,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="..\include\imgui\backends\imgui_impl_opengl3_loader.h">
       <Filter>Graphics Engine\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="cSceneManagement.h">
+      <Filter>Graphics Engine\SceneSave</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

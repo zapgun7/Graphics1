@@ -147,6 +147,7 @@
     <ClCompile Include="Basic Shader Manager\cShader.cpp" />
     <ClCompile Include="Basic Shader Manager\cShaderManager.cpp" />
     <ClCompile Include="cInputHandler.cpp" />
+    <ClCompile Include="cSceneManagement.cpp" />
     <ClCompile Include="cVAOManager\cVAOManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Other Graphics Stuff\cGraphicsMain.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Other Graphics Stuff\cMesh.h" />
     <ClInclude Include="Other Graphics Stuff\GLWF_CallBacks.h" />
     <ClInclude Include="Other Graphics Stuff\OpenGLCommon.h" />
+    <ClInclude Include="cSceneManagement.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

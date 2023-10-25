@@ -52,6 +52,8 @@ cGraphicsMain::cGraphicsMain()
 bool cGraphicsMain::Initialize()
 {
 	m_InputHandler = new cInputHandler();
+	m_pSceneManager = new cSceneManagement();
+	m_pSceneManager->Initialize();
 
 
 	glfwSetErrorCallback(error_callback);
@@ -199,6 +201,13 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 				m_ShowLightEditor = false;
 			else
 				m_ShowLightEditor = true;
+		}
+		if (ImGui::Button("Scene Manager"))
+		{
+			if (m_ShowSceneManager)
+				m_ShowSceneManager = false;
+			else
+				m_ShowSceneManager = true;
 		}
 
 
@@ -361,6 +370,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		ImGui::SeparatorText("Other Light Options");
 		const char* lightTypes[] = { "Point Light", "Spot Light", "Directional Light"};
 		static int ltype_current_idx = 0;
+		ltype_current_idx = lightParam1.x; // Set selected light type to one stored in the light
 		const char* combo_preview_value = lightTypes[ltype_current_idx];
 		if (ImGui::BeginCombo("Light Types", combo_preview_value))
 		{
@@ -399,7 +409,16 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		ImGui::End();
 	}
 
+	if (m_ShowSceneManager)
+	{
+		ImGui::Begin("Scene Manager");
+		if (ImGui::Button("Save Scene"))
+		{
+			m_pSceneManager->saveScene("testsave", m_vec_pMeshesToDraw, m_pTheLights);
+		}
 
+		ImGui::End();
+	}
 
 
 
@@ -714,6 +733,11 @@ bool cGraphicsMain::LoadModels(void)
 		modelDrawingInfo, m_shaderProgramID);
 	std::cout << "Loaded: " << modelDrawingInfo.numberOfVertices << " vertices" << std::endl;
 	m_AvailableModels.push_back("Terrain_xyz_n_rgba.ply");
+
+	m_pMeshManager->LoadModelIntoVAO("train.ply",
+		modelDrawingInfo, m_shaderProgramID);
+	std::cout << "Loaded: " << modelDrawingInfo.numberOfVertices << " vertices" << std::endl;
+	m_AvailableModels.push_back("train.ply");
 
 
 
