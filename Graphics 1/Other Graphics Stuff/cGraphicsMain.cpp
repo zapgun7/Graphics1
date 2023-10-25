@@ -155,7 +155,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 
 	// Check input for camera movement
 	m_InputHandler->queryKeys(m_window);
-
+	std::vector<std::string> availSaves;
 
 	// ---------------------------IMGUI WINDOWS---------------------------------------//
 	{
@@ -235,9 +235,11 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 			}
 			ImGui::EndListBox();
 		}
-		bool isExistingMesh = true; // Assert we have at least one mesh
+		if (mesh_obj_idx >= m_vec_pMeshesToDraw.size()) // When changing scenes, this makes sure it doesn't go outta bounds
+			mesh_obj_idx = 0;
+		bool isExistingMesh = false; // Assert we have at least one mesh
 		if (m_vec_pMeshesToDraw.size() > 0)
-			isExistingMesh = false;
+			isExistingMesh = true;
 
 		static bool doNotLight = false;
 		if (isExistingMesh)
@@ -254,7 +256,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		float yOri = 0;
 		float zOri = 0;
 		float scale = 0;
-		if (!isExistingMesh)
+		if (isExistingMesh)
 		{
 			xPos = m_vec_pMeshesToDraw[mesh_obj_idx]->drawPosition.x;
 			yPos = m_vec_pMeshesToDraw[mesh_obj_idx]->drawPosition.y;
@@ -281,7 +283,7 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 		
 		// List all object attributes the user is able to edit
 
-		if (!isExistingMesh)
+		if (isExistingMesh)
 		{
 			glm::vec3 newPos = glm::vec3(xPos, yPos, zPos);
 			glm::vec3 newOri = glm::vec3(xOri, yOri, zOri);
@@ -412,9 +414,41 @@ bool cGraphicsMain::Update() // Main "loop" of the window. Not really a loop, ju
 	if (m_ShowSceneManager)
 	{
 		ImGui::Begin("Scene Manager");
-		if (ImGui::Button("Save Scene"))
+
+		availSaves = m_pSceneManager->getAvailableSaves(); // Update availible saves upon opening scene manager window
+		static int saves_idx = 0;
+		if (ImGui::BeginListBox("Available Saves")) // List of availible saves to load from
 		{
-			m_pSceneManager->saveScene("testsave", m_vec_pMeshesToDraw, m_pTheLights);
+			for (int n = 0; n < availSaves.size(); n++)
+			{
+				const bool is_save_selected = (saves_idx == n);
+				if (ImGui::Selectable(availSaves[n].c_str(), is_save_selected))
+					saves_idx = n;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_save_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndListBox();
+		}
+
+		if (ImGui::Button("Load Scene"))
+		{
+			if (availSaves.size() > 0)
+				m_pSceneManager->loadScene(availSaves[saves_idx]); // Will load a selected item from a list in the future
+		}
+
+
+		static char saveNameBuf[32] = ""; ImGui::InputText("Save Name", saveNameBuf, 32);
+		ImGui::SameLine();
+		if (ImGui::Button("Save Current Scene"))
+		{
+			if (std::strlen(saveNameBuf) > 0)
+			{
+				m_pSceneManager->saveScene(saveNameBuf, m_vec_pMeshesToDraw, m_pTheLights);
+				memset(saveNameBuf, 0, 32); // Reset buffer
+			}
+			
 		}
 
 		ImGui::End();
@@ -553,6 +587,28 @@ void cGraphicsMain::removeFromDrawMesh(int ID)
 			m_vec_pMeshesToDraw.erase(m_vec_pMeshesToDraw.begin() + i);
 			return;
 		}
+	}
+}
+
+// Will replace all meshes and lights with the ones provided
+void cGraphicsMain::switchScene(std::vector< cMesh* > newMeshVec, std::vector<cLight> newLights)
+{
+	for (unsigned int i = 0; i < m_vec_pMeshesToDraw.size(); i++) // Delete all pointers to meshes
+	{
+		delete m_vec_pMeshesToDraw[i];
+	}
+	m_vec_pMeshesToDraw = newMeshVec; // Set new mesh vector
+
+	for (unsigned int i = 0; i < m_pTheLights->NUMBER_OF_LIGHTS_IM_USING; i++) // Iterate through all lights and replace them with the new ones. Just replace non UL values
+	{
+		m_pTheLights->theLights[i].friendlyName = newLights[i].friendlyName;
+		m_pTheLights->theLights[i].position = newLights[i].position;
+		m_pTheLights->theLights[i].diffuse = newLights[i].diffuse;
+		m_pTheLights->theLights[i].specular = newLights[i].specular;
+		m_pTheLights->theLights[i].atten = newLights[i].atten;
+		m_pTheLights->theLights[i].direction = newLights[i].direction;
+		m_pTheLights->theLights[i].param1 = newLights[i].param1;
+		m_pTheLights->theLights[i].param2 = newLights[i].param2;
 	}
 }
 

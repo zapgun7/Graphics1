@@ -16,13 +16,16 @@ public:
 
 	void Initialize();
 
-	bool saveScene(std::string fileName, std::vector< cMesh* > MeshVec, cLightManager* Lights);
+	bool saveScene(char* fileName, std::vector< cMesh* > MeshVec, cLightManager* Lights);
 	void loadScene(std::string fileName);
+	
+	void updateAvailableSaves(); // Checks the txt file that has all saves in it
 
 	std::vector<std::string> getAvailableSaves(); // Returns available filenames to load from
 
 private:
-	//cGraphicsMain* m_GraphicsMain; // To load info back into mesh and light objects (which are in the graphics main)
+	void addNewSave(char* newSaveName); // Tries to add new save string to txt list, doesn't add it if the same name already exists
+	std::vector<std::string> m_AvailableSaves; 
 	std::string m_saveFilePath;
 
 };

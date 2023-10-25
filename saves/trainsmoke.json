@@ -17,6 +17,78 @@
             "isVisible": true,
             "isWireframe": false,
             "doNotLight": false
+        },
+        {
+            "meshName": "train.ply",
+            "friendlyName": "train",
+            "drawPosition": [
+                0.0,
+                22.700000762939453,
+                0.0
+            ],
+            "eulerOrientation": [
+                0.0,
+                -1.149999976158142,
+                0.0
+            ],
+            "scale": 0.5,
+            "isVisible": true,
+            "isWireframe": false,
+            "doNotLight": true
+        },
+        {
+            "meshName": "Sphere_1_unit_Radius.ply",
+            "friendlyName": "sphere",
+            "drawPosition": [
+                -60.79999923706055,
+                66.0,
+                0.0
+            ],
+            "eulerOrientation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 2.450000047683716,
+            "isVisible": true,
+            "isWireframe": false,
+            "doNotLight": true
+        },
+        {
+            "meshName": "Sphere_1_unit_Radius.ply",
+            "friendlyName": "sphere2",
+            "drawPosition": [
+                -60.0,
+                71.4000015258789,
+                0.0
+            ],
+            "eulerOrientation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.7000000476837158,
+            "isVisible": true,
+            "isWireframe": false,
+            "doNotLight": true
+        },
+        {
+            "meshName": "Sphere_1_unit_Radius.ply",
+            "friendlyName": "sphere3",
+            "drawPosition": [
+                -57.349998474121094,
+                76.0,
+                0.0
+            ],
+            "eulerOrientation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.0,
+            "isVisible": true,
+            "isWireframe": false,
+            "doNotLight": true
         }
     ],
     "lights": [

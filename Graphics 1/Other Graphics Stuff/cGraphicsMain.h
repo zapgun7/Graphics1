@@ -27,7 +27,7 @@ public:
 	void Destroy();
 	//void addToDrawMesh(cMesh* newMesh);
 	void removeFromDrawMesh(int ID);
-
+	void switchScene(std::vector< cMesh* > newMeshVec, std::vector<cLight> newLights); // New mesh vector to copy over (will properly release all resources tied to the old one); vector of lights to copy over to the new one
 
 private:
 	cGraphicsMain();

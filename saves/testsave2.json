@@ -17,6 +17,24 @@
             "isVisible": true,
             "isWireframe": false,
             "doNotLight": false
+        },
+        {
+            "meshName": "train.ply",
+            "friendlyName": "train",
+            "drawPosition": [
+                0.0,
+                22.700000762939453,
+                0.0
+            ],
+            "eulerOrientation": [
+                0.0,
+                -1.149999976158142,
+                0.0
+            ],
+            "scale": 0.5,
+            "isVisible": true,
+            "isWireframe": false,
+            "doNotLight": true
         }
     ],
     "lights": [
